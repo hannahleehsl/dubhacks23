@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>HTML 5 Boilerplate</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <main>
       <h1>ALI</h1>
       <form action="">
-        <input type="text" name="message" id="message">
+        <input type="text" name="message" id="message" />
         <button type="submit">Send</button>
       </form>
       <div id="chat-log">
@@ -20,26 +20,26 @@
       </div>
     </main>
     <script>
-      const message = document.getElementById('message');
-      const form = document.querySelector('form');
-      const typedResponse = document.getElementById('typed-response');
-      const chatLog = document.getElementById('chat-log');
+      const message = document.getElementById("message");
+      const form = document.querySelector("form");
+      const typedResponse = document.getElementById("typed-response");
+      const chatLog = document.getElementById("chat-log");
 
-      form.addEventListener('submit', async (e) => {
+      form.addEventListener("submit", async (e) => {
         e.preventDefault();
         const messageText = message.value;
-        message.value = '';
-        displayMessage('message--sent', messageText);
+        message.value = "";
+        displayMessage("message--sent", messageText);
 
         try {
-          const response = await fetch('http://localhost:3002', {
-            method: 'POST',
+          const response = await fetch("http://localhost:3002", {
+            method: "POST",
             headers: {
-              'Content-Type': 'application/json'
+              "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              message: messageText
-            })
+              message: messageText,
+            }),
           });
 
           if (response.ok) {
@@ -47,16 +47,16 @@
             const botReply = data.completion;
             displayTypingResponse(botReply);
           } else {
-            console.error('API request failed:', response.status);
+            console.error("API request failed:", response.status);
           }
         } catch (error) {
-          console.error('Error:', error);
+          console.error("Error:", error);
         }
       });
 
       function displayMessage(role, text) {
-        const messageElement = document.createElement('div');
-        messageElement.classList.add('message');
+        const messageElement = document.createElement("div");
+        messageElement.classList.add("message");
         messageElement.classList.add(role);
         messageElement.innerHTML = `<div class="message__text">${text}</div>`;
         chatLog.appendChild(messageElement);
@@ -74,7 +74,7 @@
       }
 
       function displayTypingResponse(text) {
-        typedResponse.textContent = '';
+        typedResponse.textContent = "";
         typeText(text);
       }
     </script>
