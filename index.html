@@ -19,6 +19,8 @@
         <h2 id="title"></h2>
         <div id="typed-response"></div>
       </div>
+      <button id="toggleRecording">Start Recording</button>
+      <button id="stopRecording" style="display: none">Stop Recording</button>
     </main>
     <script>
       const message = document.getElementById("message");
@@ -26,6 +28,35 @@
       const typedResponse = document.getElementById("typed-response");
       const chatLog = document.getElementById("chat-log");
       let typing = false;
+      let isRecording = false;
+
+      let recognition = new webkitSpeechRecognition();
+
+      recognition.onresult = (event) => {
+        const speechResult = event.results[0][0].transcript;
+        message.value = speechResult;
+      };
+
+      const startRecordingButton = document.getElementById("toggleRecording");
+      const stopRecordingButton = document.getElementById("stopRecording");
+
+      startRecordingButton.addEventListener("click", () => {
+        if (!isRecording) {
+          isRecording = true;
+          startRecordingButton.style.display = "none";
+          stopRecordingButton.style.display = "inline-block";
+          recognition.start();
+        }
+      });
+
+      stopRecordingButton.addEventListener("click", () => {
+        if (isRecording) {
+          isRecording = false;
+          startRecordingButton.style.display = "inline-block";
+          stopRecordingButton.style.display = "none";
+          recognition.stop();
+        }
+      });
 
       const summarizeForm = document.getElementById("summarizeForm");
 
