@@ -3,36 +3,72 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <meta http-equiv="X-UA-Compatible" content="ie-edge" />
     <title>HTML 5 Boilerplate</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <main>
-      <h1>ALI</h1>
-      <form action="">
-        <input type="text" name="message" id="message" />
-        <button type="submit">Send</button>
+      <h1>ALLI</h1>
+      <form id="summarizeForm">
+        <textarea name="message" id="message" rows="25" cols="50"></textarea>
+        <button type="submit">Summarize</button>
       </form>
       <div id="chat-log">
         <div id="response-container"></div>
+        <h2 id="title"></h2>
         <div id="typed-response"></div>
       </div>
     </main>
     <script>
       const message = document.getElementById("message");
-      const form = document.querySelector("form");
+      const title = document.getElementById("title");
       const typedResponse = document.getElementById("typed-response");
       const chatLog = document.getElementById("chat-log");
+      let typing = false;
 
-      form.addEventListener("submit", async (e) => {
+      const summarizeForm = document.getElementById("summarizeForm");
+
+      summarizeForm.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const messageText = message.value;
-        message.value = "";
-        displayMessage("message--sent", messageText);
+        summarize();
+      });
 
+      async function fetchTitle(titleText) {
         try {
-          const response = await fetch("http://localhost:3002", {
+          const titleResponse = await fetch("http://localhost:3002", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              message: titleText,
+            }),
+          });
+
+          if (titleResponse.ok) {
+            const titleData = await titleResponse.json();
+            const titleReply = titleData.completion;
+
+            // Clear the title and bullet point
+            title.textContent = "";
+
+            // Display the title with a typewriter effect
+            await typeText(titleReply, title, false);
+          } else {
+            console.error(
+              "API request for title failed:",
+              titleResponse.status
+            );
+          }
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      }
+
+      async function fetchSummary(messageText) {
+        try {
+          const summaryResponse = await fetch("http://localhost:3002", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -42,17 +78,22 @@
             }),
           });
 
-          if (response.ok) {
-            const data = await response.json();
-            const botReply = data.completion;
-            displayTypingResponse(botReply);
+          if (summaryResponse.ok) {
+            const summaryData = await summaryResponse.json();
+            const summaryReply = summaryData.completion;
+
+            // Display the summary with a typewriter effect
+            await typeText(summaryReply, typedResponse, true);
           } else {
-            console.error("API request failed:", response.status);
+            console.error(
+              "API request for summary failed:",
+              summaryResponse.status
+            );
           }
         } catch (error) {
           console.error("Error:", error);
         }
-      });
+      }
 
       function displayMessage(role, text) {
         const messageElement = document.createElement("div");
@@ -66,16 +107,44 @@
         chatLog.scrollTop = chatLog.scrollHeight;
       }
 
-      async function typeText(text) {
-        for (let i = 0; i < text.length; i++) {
-          typedResponse.textContent += text[i];
-          await new Promise((resolve) => setTimeout(resolve, 50));
+      async function typeText(text, element, addBulletPoints) {
+        typing = true;
+        const lines = text.split("."); // Split text into lines
+        for (let i = 0; i < lines.length; i++) {
+          if (lines[i].trim() !== "") {
+            if (addBulletPoints) {
+              element.innerHTML += "&#8226; " + lines[i] + "<br>";
+            } else {
+              element.innerHTML += lines[i] + "<br>";
+            }
+          }
+          await new Promise((resolve) => setTimeout(resolve, 10));
         }
+        typing = false;
       }
 
-      function displayTypingResponse(text) {
+      function summarize() {
+        let messageText = message.value;
+        let titleText = title.value;
+
+        // Set message and title text
+        messageText = "summarize this in sentences: " + messageText;
+        titleText =
+          "Suggest a title for this summary (max 5 words): " + messageText;
         typedResponse.textContent = "";
-        typeText(text);
+        title.textContent = "";
+
+        if (typing) {
+          return;
+        }
+
+        fetchTitle(titleText)
+          .then(() => {
+            return fetchSummary(messageText);
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
       }
     </script>
   </body>
