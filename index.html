@@ -9,7 +9,7 @@
   </head>
   <body>
     <main>
-      <h1>ALLI</h1>
+      <h1>alli</h1>
       <form id="summarizeForm">
         <textarea name="message" id="message" rows="25" cols="50"></textarea>
         <button type="submit">Summarize</button>
@@ -19,8 +19,8 @@
         <h2 id="title"></h2>
         <div id="typed-response"></div>
       </div>
-      <button id="toggleRecording">Start Recording</button>
-      <button id="stopRecording" style="display: none">Stop Recording</button>
+      <button id="toggleRecording">Start</button>
+      <button id="stopRecording">End</button>
     </main>
     <script>
       const message = document.getElementById("message");
@@ -28,7 +28,6 @@
       const typedResponse = document.getElementById("typed-response");
       const chatLog = document.getElementById("chat-log");
       let typing = false;
-      let isRecording = false;
 
       let recognition = new webkitSpeechRecognition();
 
@@ -39,12 +38,11 @@
 
       const startRecordingButton = document.getElementById("toggleRecording");
       const stopRecordingButton = document.getElementById("stopRecording");
+      let isRecording = false;
 
       startRecordingButton.addEventListener("click", () => {
         if (!isRecording) {
           isRecording = true;
-          startRecordingButton.style.display = "none";
-          stopRecordingButton.style.display = "inline-block";
           recognition.start();
         }
       });
@@ -52,8 +50,6 @@
       stopRecordingButton.addEventListener("click", () => {
         if (isRecording) {
           isRecording = false;
-          startRecordingButton.style.display = "inline-block";
-          stopRecordingButton.style.display = "none";
           recognition.stop();
         }
       });
@@ -66,6 +62,9 @@
       });
 
       async function fetchTitle(titleText) {
+        // Add typing... message while waiting for response
+        typedResponse.innerHTML = "Typing...";
+
         try {
           const titleResponse = await fetch("http://localhost:3002", {
             method: "POST",
@@ -94,10 +93,15 @@
           }
         } catch (error) {
           console.error("Error:", error);
+        } finally {
+          typedResponse.innerHTML = ""; // Remove typing... message
         }
       }
 
       async function fetchSummary(messageText) {
+        // Display "Typing..." message while waiting for response
+        typedResponse.innerHTML = "Typing...";
+
         try {
           const summaryResponse = await fetch("http://localhost:3002", {
             method: "POST",
@@ -113,7 +117,8 @@
             const summaryData = await summaryResponse.json();
             const summaryReply = summaryData.completion;
 
-            // Display the summary with a typewriter effect
+            // Remove "Typing..." message and display the summary with a typewriter effect
+            typedResponse.innerHTML = "";
             await typeText(summaryReply, typedResponse, true);
           } else {
             console.error(
@@ -125,7 +130,6 @@
           console.error("Error:", error);
         }
       }
-
       function displayMessage(role, text) {
         const messageElement = document.createElement("div");
         messageElement.classList.add("message");
